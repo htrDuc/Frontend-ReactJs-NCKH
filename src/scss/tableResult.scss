@@ -1,0 +1,12 @@
+.table-result {
+  position: relative;
+
+  .recharts-wrapper {
+    position: fixed !important;
+    left: -60px;
+  }
+
+  .recharts-tooltip-wrapper {
+    left: 70px !important;
+  }
+}
