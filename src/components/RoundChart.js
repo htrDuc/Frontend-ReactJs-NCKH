@@ -1,4 +1,4 @@
-import React, {  useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
@@ -36,11 +36,12 @@ export default function RoundChart({ listUsers }) {
   useEffect(() => {
     let loanNumber = 0;
     let notLoanNumber = 0;
+    // eslint-disable-next-line array-callback-return
     listUsers.map((user) => {
-      if (user.loan) {
+      if (user.loan === "Y") {
         loanNumber++;
       }
-      if (!user.loan) {
+      if (user.loan === "N") {
         notLoanNumber++;
       }
     });

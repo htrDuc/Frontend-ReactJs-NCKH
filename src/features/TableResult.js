@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import Input from "../components/Input";
 import Button from "../components/Button";
 import InfoUser from "./InfoUser";
@@ -29,6 +29,8 @@ const TableResult = ({ listUsers, updateListUsers }) => {
       handleSearch();
     }
   };
+
+  console.log(newListUsers);
 
   return (
     <div className="container-table table-result">
