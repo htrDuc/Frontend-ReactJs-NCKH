@@ -23,7 +23,8 @@ const FormInfoUser = ({listUsers, updateListUsers}) => {
     const {algorithm} = useParams()
     const [isLoan, setLoan] = useState("");
     const [error, setError] = useState(false);
-    const [score, setScore] = useState("1");
+    const [score, setScore] = useState("");
+    const [predictRate, setPredictRate] = useState(false)
     let path = ""
 
     let infoUser = {
@@ -51,35 +52,50 @@ const FormInfoUser = ({listUsers, updateListUsers}) => {
         setTimeout(() => {
             document.getElementById("modal-success").style.display = "none";
         }, 2000);
-        document.getElementById("modal-success").style.display = "block";
+        setTimeout(() => {
+            document.getElementById("modal-success").style.display = "block";
+        }, 1000);
     };
+
+    const notiPredictRate = () => {
+        document.getElementById("modal-rate-success").style.display = "block";
+        setTimeout(() => {
+            document.getElementById("modal-rate-success").style.display = "none";
+        }, 2000);
+    }
 
     const handleInputForm = async (event) => {
         event.preventDefault();
-        const url = `http://localhost:8000/${path}`;
-        const bodyData = JSON.stringify({
-            "Gender": infoUser.gender,
-            "Married": infoUser.married,
-            "Dependents": infoUser.dependents,
-            "Self_Employed": infoUser.selfEmployed,
-            "Salary": infoUser.salary,
-            "Loan_Amount": infoUser.loanAmount,
-            "Loan_Amount_Term": infoUser.loanAmountTerm,
-            "Credit_History": infoUser.creditHistory,
-            "Region": infoUser.region,
-        });
-        const reqOpt = {
-            method: "POST",
-            headers: {"Content-type": "application/json"},
-            body: bodyData
-        };
-        const resp =await fetch(url, reqOpt)
-        const resp2 = await resp.json()
-            if(path === "predictRandomForest") setScore(resp2.score)
-            else  {
-                setLoan(resp2.predict.toString());
-                console.log(isLoan)
+        try {
+            const url = `http://localhost:8000/${path}`;
+            const bodyData = JSON.stringify({
+                "Gender": infoUser.gender,
+                "Married": infoUser.married,
+                "Dependents": infoUser.dependents,
+                "Self_Employed": infoUser.selfEmployed,
+                "Salary": infoUser.salary,
+                "Loan_Amount": infoUser.loanAmount,
+                "Loan_Amount_Term": infoUser.loanAmountTerm,
+                "Credit_History": infoUser.creditHistory,
+                "Region": infoUser.region,
+            });
+            const reqOpt = {
+                method: "POST",
+                headers: {"Content-type": "application/json"},
+                body: bodyData
+            };
+            const resp = await fetch(url, reqOpt)
+            const resp2 = await resp.json()
+            if (path === "predictRandomForest"){
+                await setScore(resp2.score)
+                console.log(score);}
+            else {
+                await setLoan(resp2.predict.toString());
+                console.log(path, resp2.predict.toString(), isLoan)
             }
+        } catch (e) {
+            console.error(e)
+        }
     }
 
     const handleClickBtnSubmit = (event) => {
@@ -97,34 +113,53 @@ const FormInfoUser = ({listUsers, updateListUsers}) => {
         }
         handleInputForm(event);
 
-        if(path !== "predictRandomForest"){
+        if (path !== "predictRandomForest") {
             setError(false);
             notiHandleBtnSubmit();
             const data = [...listUsers];
             data.push(infoUser);
             updateListUsers(data);
         } else {
-            alert("Tỉ lệ dự đoán là: " + score*100 + "%")
+            // alert()
+            setPredictRate(true)
+            notiPredictRate()
+            console.log("Tỉ lệ dự đoán là: " + score * 100 + "%", predictRate)
         }
     };
 
-    const renderTextNotiLoan = (isLoan, nameUser) => {
+    const renderTextNotiLoan = (textCondition, result) => {
+        if (!textCondition) return
+
+        if (textCondition === "score") {
+            console.log(result)
+            return (
+                <>
+                    {Number(result) >= 50 && (
+                        <div className="p-right">
+                            The predicted rate is: <span style={{fontWeight: "bold"}}>{result}</span>
+                        </div>
+                    )}
+                    {Number(result) < 50 && (
+                        <div className="p-right">
+                            The predicted rate is: <span style={{fontWeight: "bold"}}>{result}</span>
+                        </div>
+                    )}
+                </>
+            )
+        }
+
         return (
             <>
-                {isLoan ==="Y" ? (
-                    <>
-                        <div className="p-right">
-                            Congratulation <span style={{fontWeight: "bold"}}>{nameUser}</span>{" "}
-                            has been borrowed
-                        </div>
-                    </>
+                {textCondition === "Y" ? (
+                    <div className="p-right">
+                        Congratulation <span style={{fontWeight: "bold"}}>{result}</span>{" "}
+                        has been borrowed
+                    </div>
                 ) : (
-                    <>
-                        <div className="p-right">
-                            Sorry <span style={{fontWeight: "bold"}}>{nameUser}</span>{" "}
-                            Not qualified for a loan
-                        </div>
-                    </>
+                    <div className="p-right">
+                        Sorry <span style={{fontWeight: "bold"}}>{result}</span>{" "}
+                        Not qualified for a loan
+                    </div>
                 )}
             </>
         );
@@ -132,6 +167,15 @@ const FormInfoUser = ({listUsers, updateListUsers}) => {
 
     return (
         <div className="container">
+            <div id="modal-rate-success"
+                className="modal-noti modal-success"
+                style={{display: "none"}}>
+                {predictRate === true ?? (
+                    <span className="inline">
+                        {renderTextNotiLoan("score", score * 100)}
+                    </span>
+                )}
+            </div>
             <div
                 id="modal-success"
                 className={
@@ -143,17 +187,17 @@ const FormInfoUser = ({listUsers, updateListUsers}) => {
             >
                 {!error ? (
                     <span className="inline">
-            {renderTextNotiLoan(isLoan, nameUser)}
+                        {renderTextNotiLoan(isLoan, nameUser)}
                         <FontAwesomeIcon
                             className={isLoan === "Y" ? "check" : "cancel"}
                             icon={isLoan === "Y" ? faCheckCircle : faTimesCircle}
                         />
-          </span>
+                    </span>
                 ) : (
                     <span className="inline">
-            <div className="p-right">Please fill out the form</div>
-            <FontAwesomeIcon className="cancel" icon={faTimesCircle}/>
-          </span>
+                        <div className="p-right">Please fill out the form</div>
+                        <FontAwesomeIcon className="cancel" icon={faTimesCircle}/>
+                    </span>
                 )}
             </div>
 

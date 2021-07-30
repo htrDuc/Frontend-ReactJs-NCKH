@@ -1,5 +1,6 @@
 import React, {useState} from "react";
 import {useParams} from "react-router-dom";
+import Button from '../components/Button'
 
 const UploadForm = () => {
     const [selectFile, setSelectFile] = useState(null);
@@ -72,7 +73,7 @@ const UploadForm = () => {
             <h2>Batch Processing: using {algorithm}</h2>
             <form onSubmit={handleUpload}>
                 <input id="file" type="file" name="selectFile" onChange={handleFile}></input>
-                <input id="button" type="submit" value="Submit"></input>
+                <Button color="#3498db" name="Submit" type="submit" />
             </form>
             <div className="data"> {finalTableData}</div>
         </div>
